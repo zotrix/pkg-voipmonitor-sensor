@@ -1,0 +1,52 @@
+From: "Max N. Boyarov" <max.n.boyarov@gmail.com>
+Date: Tue, 6 Nov 2012 13:24:00 +0300
+Subject: fix liblfds.6 build
+
+---
+ liblfds.6/Makefile.in |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/liblfds.6/Makefile.in b/liblfds.6/Makefile.in
+index 2232b08..a128f00 100644
+--- a/liblfds.6/Makefile.in
++++ b/liblfds.6/Makefile.in
+@@ -72,12 +72,12 @@ endif
+ vpath %.c $(patsubst %,$(SRCDIR)/%:,$(SRCDIRS))
+ 
+ ##### implicit rules #####
+-$(OBJDIR)/%.o : %.c
++$(OBJDIR)/%.o : %.c $(OBJDIR)
+ 	$(DG) $(DGFLAGS) $< >$(OBJDIR)/$*.d
+ 	$(CC) $(CFLAGS) -o $@ $<
+ 
+ ##### explicit rules #####
+-$(AR_BINARY) : $(OBJECTS)
++$(AR_BINARY) : $(OBJECTS) $(BINDIR)
+ 	$(AR) $(AFLAGS) $(AR_BINARY) $(OBJECTS)
+ 
+ $(SO_BINARY) : $(OBJECTS)
+@@ -88,6 +88,8 @@ $(SO_BINARY) : $(OBJECTS)
+ 
+ clean : 
+ 	@rm -f $(BINDIR)/$(BINNAME).* $(OBJDIR)/*.o $(OBJDIR)/*.d
++	@rmdir $(BINDIR) || true
++	@rmdir $(OBJDIR) || true
+ 
+ arrel : $(AR_BINARY)
+ ardbg : $(AR_BINARY)
+@@ -95,6 +97,15 @@ ardbg : $(AR_BINARY)
+ sorel : $(SO_BINARY)
+ sodbg : $(SO_BINARY)
+ 
++
++$(BINDIR):
++	@echo "[create] $(BINDIR)"
++	@mkdir -p $(BINDIR)
++
++$(OBJDIR):
++	@echo "[create] $(OBJDIR)"
++	@mkdir -p $(OBJDIR)
++
+ ##### dependencies #####
+ -include $(DEPENDS)
+ 

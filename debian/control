@@ -1,0 +1,33 @@
+Source: voipmonitor
+Section: comm
+Priority: extra
+Maintainer: Max N. Boyarov <max.n.boyarov@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, libogg-dev, libvorbis-dev,
+	       unixodbc-dev, libpcap-dev, autotools-dev,
+	       dh-autoreconf, libmysqlclient-dev
+Standards-Version: 3.9.3
+Homepage: http://www.voipmonitor.com
+#Vcs-Git: 
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/voipmonitor.git;a=summary
+
+Package: voipmonitor-sensor
+Architecture: any
+Recommends: tshark
+Depends: ${misc:Depends}, ${shlibs:Depends}, dbconfig-common (>= 1.8.19), lsb-base, ucf
+Description: VoIP Sniffer
+ VoIP monitor is packet sniffer analyzer wav recorder for SIP
+ calls. It calculates MOS (Meaning Opinion Score) by E-model (ITU-T
+ G.107) and stores statistics to MySQL database. Primary goal is to
+ provide complete platform for VoIP quality measurments.
+
+Package: voipmonitor-sensor-dbg
+Architecture: any
+Section: debug
+Depends: ${misc:Depends}, ${shlibs:Depends}, voipmonitor-sensor (= ${binary:Version})
+Description: debug information for voipmonitor sniffer
+ VoIP monitor is packet sniffer analyzer wav recorder for SIP
+ calls. It calculates MOS (Meaning Opinion Score) by E-model (ITU-T
+ G.107) and stores statistics to MySQL database. Primary goal is to
+ provide complete platform for VoIP quality measurments.
+ .
+ This package contains debug symbols for voipmonitor

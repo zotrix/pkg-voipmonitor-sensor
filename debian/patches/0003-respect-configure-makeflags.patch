@@ -1,0 +1,217 @@
+From: "Max N. Boyarov" <max.n.boyarov@gmail.com>
+Date: Mon, 6 May 2013 11:33:45 +0300
+Subject: respect configure makeflags
+
+---
+ Makefile.in           |   63 ++++++++++++++++++++++++++++---------------------
+ liblfds.6/Makefile.in |   21 +++++++++--------
+ simpleini/Makefile.in |    8 +++----
+ 3 files changed, 51 insertions(+), 41 deletions(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index e20278e..724d4c8 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -15,6 +15,15 @@ objects = codec_alaw.o codec_ulaw.o format_slinear.o format_wav.o format_ogg.o c
+ 
+ headers = $(shell ls *.h -1 | tr "\n" " ")
+ 
++CXX = @CXX@
++CFLAGS = @CFLAGS@
++LDFLAGS = @LDFLAGS@
++
++MYSQL_CFLAGS=@MYSQL_CFLAGS@
++MYSQL_LDFLAGS=@MYSQL_LDFLAGS@
++
++# LIBS = @LIBS@
++
+ #args = -g3 -Wall  -march=$(GCCARCH)
+ #args = -O2 -Wall -march=$(GCCARCH)
+ #CFLAGS+=-I /usr/local/include/mysql++/ -I /usr/include/mysql++/ -I /usr/include/mysql/ -g3 -Wall -I jitterbuffer/  -L/usr/local/lib/ -Lgzstream/ -Lliblfds.6/bin/ -fPIC
+@@ -23,8 +32,8 @@ headers = $(shell ls *.h -1 | tr "\n" " ")
+ 
+ shared: LIBS=-lpthread -lpcap -lgzstream -lz -lvorbis -lvorbisenc -logg -lodbc -lmysqlclient # -llfds #-lcurl #-lnids
+ #shared: CFLAGS+= -DISCURL -DQUEUE_NONBLOCK2 -I /usr/local/include/mysql++/ -I /usr/include/mysql++/ -I /usr/include/mysql/ -Wall -I jitterbuffer/  -L/usr/lib/mysql -L/usr/local/lib/ -Lgzstream/ -Lliblfds.6/bin/ -L/usr/lib64/mysql -fPIC -g3
+-shared: CFLAGS+= -DQUEUE_NONBLOCK2 -I /usr/local/include/mysql++/ -I /usr/include/mysql++/ -I /usr/include/mysql/ -Wall -I jitterbuffer/  -L/usr/lib/mysql -L/usr/local/lib/ -Lgzstream/ -Lliblfds.6/bin/ -L/usr/lib64/mysql -fPIC -g3
+-shared: args = -g3 -Wall  -march=$(GCCARCH) 
++shared: CFLAGS+= -DQUEUE_NONBLOCK2 -I /usr/local/include/mysql++/ -I /usr/include/mysql++/ -I /usr/include/mysql/ -Wall -I jitterbuffer/  -L/usr/lib/mysql -L/usr/local/lib/ -Lgzstream/ -Lliblfds.6/bin/ -L/usr/lib64/mysql -fPIC 
++shared: args = -Wall
+ 
+ #static: LIBS=-static -L/usr/lib/mysql -L/usr/lib64/mysql -L/usr/lib/mysql -lodbc -lltdl -ldl -lrt -lz -lcrypt -lm -lssl -static-libstdc++ -static-libgcc -lpcap -L/usr/lib/mysql -lmysqlclient -lpthread -lgzstream -lz -lc -lvorbis -lvorbisenc -logg -llfds # -lcurl -lidn -lssl -lcrypto  -lrt 
+ static: LIBS=-static -L/usr/lib/mysql -L/usr/lib64/mysql -L/usr/lib/mysql -lodbc -lltdl -ldl -lrt -lz -lcrypt -lm -lssl -static-libstdc++ -static-libgcc -lpcap -L/usr/lib/mysql -lmysqlclient -lpthread -lgzstream -lz -lc -lvorbis -lvorbisenc -logg # -llfds 
+@@ -42,83 +51,83 @@ armv5static: args = -g3 -Wall  -march=armv5
+ 
+ shared: cleantest $(objects) 
+ #	make -C liblfds.6
+-	g++ $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
++	${CXX} $(objects) ${CFLAGS} ${LDFLAGS} -o voipmonitor ${LIBS}
+ 
+ static: cleantest $(objects)
+ #	make -C liblfds.6
+-	g++ $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
++	${CXX} $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
+ 
+ armv5shared: cleantest $(objects)
+-	g++ $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
++	${CXX} $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
+ 
+ armv5static: cleantest $(objects)
+-	g++ $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
++	${CXX} $(objects) ${CFLAGS} -o voipmonitor ${LIBS}
+ 
+ cleantest:
+ 	@cmp -s .cleancount .lastclean || $(MAKE) clean
+ 
+ gzstream/gzstream.o : gzstream/gzstream.C gzstream/gzstream.h
+-	g++ -I. -Igzstream/ -c -o gzstream/gzstream.o gzstream/gzstream.C
++	${CXX} -I. -Igzstream/ -c -o gzstream/gzstream.o gzstream/gzstream.C
+ 
+ gzstream/libgzstream.a : gzstream/gzstream.o
+ 	ar cr gzstream/libgzstream.a gzstream/gzstream.o
+ 
+ codec_alaw.o : codec_alaw.cpp codec_alaw.h ${headers}
+-	g++ -c codec_alaw.cpp $(args) ${CFLAGS}
++	${CXX} -c codec_alaw.cpp $(args) ${CFLAGS}
+ 
+ codec_ulaw.o : codec_ulaw.cpp codec_ulaw.h ${headers}
+-	g++ -c codec_ulaw.cpp $(args) ${CFLAGS}
++	${CXX} -c codec_ulaw.cpp $(args) ${CFLAGS}
+ 
+ format_slinear.o : format_slinear.cpp format_slinear.h ${headers}
+-	g++ -c format_slinear.cpp $(args) ${CFLAGS}
++	${CXX} -c format_slinear.cpp $(args) ${CFLAGS}
+ 
+ format_wav.o : format_wav.cpp format_wav.h ${headers}
+-	g++ -c format_wav.cpp $(args) ${CFLAGS}
++	${CXX} -c format_wav.cpp $(args) ${CFLAGS}
+ 
+ format_ogg.o : format_ogg.cpp format_ogg.h ${headers}
+-	g++ -c format_ogg.cpp $(args) ${CFLAGS}
++	${CXX} -c format_ogg.cpp $(args) ${CFLAGS}
+ 
+ calltable.o : calltable.cpp calltable.h ${headers}
+-	g++ -c calltable.cpp $(args) ${CFLAGS}
++	${CXX} -c calltable.cpp $(args) ${CFLAGS}
+ 
+ rtp.o : rtp.cpp rtp.h ${headers}
+-	g++ -c rtp.cpp $(args) ${CFLAGS}
++	${CXX} -c rtp.cpp $(args) ${CFLAGS}
+ 
+ rtcp.o : rtcp.cpp rtcp.h ${headers}
+-	g++ -c rtcp.cpp $(args) ${CFLAGS}
++	${CXX} -c rtcp.cpp $(args) ${CFLAGS}
+ 
+ voipmonitor.o : voipmonitor.cpp voipmonitor.h ${headers}
+-	g++ -c voipmonitor.cpp $(args) ${CFLAGS}
++	${CXX} -c voipmonitor.cpp $(args) ${CFLAGS}
+ 
+ sniff.o : sniff.cpp sniff.h ${headers}
+-	g++ -c sniff.cpp $(args) ${CFLAGS}
++	${CXX} -c sniff.cpp $(args) ${CFLAGS}
+ 
+ manager.o : manager.cpp manager.h ${headers}
+-	g++ -c manager.cpp $(args) ${CFLAGS}
++	${CXX} -c manager.cpp $(args) ${CFLAGS}
+ 
+ tools.o : tools.cpp tools.h ${headers}
+-	g++ -c tools.cpp $(args) ${CFLAGS}
++	${CXX} -c tools.cpp $(args) ${CFLAGS}
+ 
+ filter_mysql.o : filter_mysql.cpp filter_mysql.h ${headers}
+-	g++ -c filter_mysql.cpp $(args) ${CFLAGS}
++	${CXX} -c filter_mysql.cpp $(args) ${CFLAGS}
+ 
+ hash.o : hash.cpp hash.h ${headers}
+-	g++ -c hash.cpp $(args) ${CFLAGS}
++	${CXX} -c hash.cpp $(args) ${CFLAGS}
+ 
+ mos_g729.o : mos_g729.cpp mos_g729.h ${headers}
+-	g++ -c mos_g729.cpp $(args) ${CFLAGS}
++	${CXX} -c mos_g729.cpp $(args) ${CFLAGS}
+ 
+ sql_db.o : sql_db.cpp sql_db.h ${headers}
+-	g++ -c sql_db.cpp $(args) ${CFLAGS}
++	${CXX} -c sql_db.cpp $(args) ${CFLAGS}
+ 
+ md5.o : md5.cpp md5.h ${headers}
+-	g++ -c md5.cpp $(args) ${CFLAGS}
++	${CXX} -c md5.cpp $(args) ${CFLAGS}
+ 
+ mirrorip.o : mirrorip.cpp mirrorip.h ${headers}
+-	g++ -c mirrorip.cpp $(args) ${CFLAGS}
++	${CXX} -c mirrorip.cpp $(args) ${CFLAGS}
+ 
+ ipaccount.o : ipaccount.cpp ipaccount.h ${headers}
+-	g++ -c ipaccount.cpp $(args) ${CFLAGS}
++	${CXX} -c ipaccount.cpp $(args) ${CFLAGS}
+ 
+ clean :
+ 	make -C liblfds.6 clean
+@@ -139,7 +148,7 @@ targz64: static
+ 	cp scripts/install-script.sh /tmp/voipmonitor-amd64-${version}-static/
+ 	chmod +x /tmp/voipmonitor-amd64-${version}-static/install-script.sh
+ 	tar -C /tmp -czf /tmp/voipmonitor-amd64-${version}-static.tar.gz voipmonitor-amd64-${version}-static
+-	
++
+ targz32: static
+ 	rm -rf /tmp/voipmonitor-i686-${version}-static*
+ 	mkdir -p /tmp/voipmonitor-i686-${version}-static/usr/local/sbin
+diff --git a/liblfds.6/Makefile.in b/liblfds.6/Makefile.in
+index a128f00..be446e6 100644
+--- a/liblfds.6/Makefile.in
++++ b/liblfds.6/Makefile.in
+@@ -39,21 +39,22 @@ endif
+ MAKE    = make
+ MFLAGS  = 
+ 
+-DG      = gcc
+-DGFLAGS = -MM -std=c99 -I"$(SRCDIR)" -I"$(INCDIR)"
++DG      = @CC@
++DGFLAGS = @CPPFLAGS@ -MM -std=c99 -I"$(SRCDIR)" -I"$(INCDIR)"
+ 
+-CC      = gcc
+-CBASE   = -Wall -Wno-unknown-pragmas -std=c99 -march=$(GCCARCH) -c -I"$(SRCDIR)" -I"$(INCDIR)"
+-CFREL   = -O2 -finline-functions -Wno-strict-aliasing
+-CFDBG   = -O0 -g
++CC      = @CC@
++#CBASE   = -Wall -Wno-unknown-pragmas -std=c99 -march=$(GCCARCH) -c -I"$(SRCDIR)" -I"$(INCDIR)"
++CBASE	= @CFLAGS@ -c -I"$(SRCDIR)" -I"$(INCDIR)"
++# CFREL   = -O2 -finline-functions -Wno-strict-aliasing
++# CFDBG   = -O0 -g
+ 
+ AR      = ar
+ AFLAGS  = -rcs
+ 
+-LD      = gcc
+-LFBASE  = -Wall -std=c99 -shared
+-LFREL   = -O2 -s
+-LFDBG   = -O0 -g
++LD      = @LD@
++LFBASE  = @LDFLAGS@ -Wall -std=c99 -shared
++# LFREL   = -O2 -s
++# LFDBG   = -O0 -g
+ 
+ ##### rel/dbg .a/.so variants #####
+ ifeq ($(findstring so,$(MAKECMDGOALS)),so)
+diff --git a/simpleini/Makefile.in b/simpleini/Makefile.in
+index a04b5e3..a1ef4fe 100644
+--- a/simpleini/Makefile.in
++++ b/simpleini/Makefile.in
+@@ -1,13 +1,13 @@
+-CC=g++
+-CFLAGS=-Wall
+-CPPFLAGS=-Wall
++CC=@CXX@
++CFLAGS=@CFLAGS@
++CPPFLAGS=@CPPFLAGS@
+ 
+ OBJS=testsi.o test1.o snippets.o ConvertUTF.o
+ 
+ help:
+ 	@echo This makefile is just for the test program \(use \"make clean all test\"\)
+ 	@echo Just include the SimpleIni.h header file to use it.
+-	
++
+ all: $(OBJS)
+ 	$(CC) -o testsi $(OBJS)
+ 

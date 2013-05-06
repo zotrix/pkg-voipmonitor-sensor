@@ -1,0 +1,10 @@
+# Defaults for voipmonitor initscript
+
+#
+# This is a POSIX shell fragment
+#
+
+START=no
+
+# Additional options that are passed to the Daemon.
+DAEMON_ARGS=""

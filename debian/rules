@@ -1,0 +1,74 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+
+export DH_VERBOSE=1
+
+SRC_NAME=voipmonitor
+
+DEBVERSION:=$(shell dpkg-parsechangelog | sed -n -e 's/Version: //p')
+DEB_NOEPOCH_VERSION:=$(shell echo $(DEBVERSION) | cut -d':' -f 2)
+DEB_SRC_VERSION:=$(shell echo $(DEB_NOEPOCH_VERSION) | sed -e 's/-[^-]\+$$//')
+UPVERSION:=$(shell echo $(DEB_SRC_VERSION) | sed -e 's/[.~]dfsg//' -e 's/~\(\(rc\|beta\)[0-9]\)/-\1/')
+
+FILENAME := $(SRC_NAME)_$(DEB_SRC_VERSION).orig.tar.gz
+UPFILENAME := $(SRC_NAME)_$(UPVERSION).orig.tar.gz
+FETCH_SOURCE ?= http://sourceforge.net/projects/voipmonitor/files/
+URL := $(FETCH_SOURCE)/6.5/$(SRC_NAME)-$(UPVERSION)-src.tar.gz
+
+
+override_dh_clean:
+	dh_clean
+	for f in config.log config.status; do \
+		rm -f $${f} || true; \
+	done
+
+
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		$(shell dpkg-buildflags --export=configure)
+
+override_dh_strip:
+	dh_strip -a --dbg-package=voipmonitor-sensor-dbg
+
+override_dh_autotools-dev_updateconfig:
+	touch config.guess
+	touch config.sub
+	dh_autotools-dev_updateconfig
+
+override_dh_auto_install:
+	install -d debian/voipmonitor-sensor/usr/sbin
+	install -d debian/voipmonitor-sensor/usr/share/voipmonitor
+
+	install -m0555 voipmonitor debian/voipmonitor-sensor/usr/sbin/voipmonitor-sensor
+	install -m0444 config/voipmonitor.conf debian/voipmonitor-sensor/usr/share/voipmonitor
+
+%:
+	@echo "DH do: $@"
+	dh $@  --with autotools-dev  --with autoreconf
+
+#### Helpers
+print-version:
+	@echo "Debian version:          $(DEBVERSION)"
+	@echo "Upstream version:        $(UPVERSION)"
+
+TMP_TARBALL_TOP=../tarballs/${SRC_NAME}-$(UPVERSION).tmp/${SRC_NAME}-$(UPVERSION)-src
+get-orig-source:
+	@echo Downloading $(UPFILENAME) from $(URL) ...
+	@wget -nv -T10 -t3 -O ../tarballs/$(UPFILENAME) $(URL)
+	@echo Repacking [CLEANUP]...
+
+	@mkdir -p ../tarballs/$(SRC_NAME)-$(UPVERSION).tmp/
+	@cd ../tarballs/$(SRC_NAME)-$(UPVERSION).tmp ; \
+		tar xfz ../$(UPFILENAME)
+
+	rm -f $(TMP_TARBALL_TOP)/config.log
+	rm -f $(TMP_TARBALL_TOP)/config.status
+
+	mv $(TMP_TARBALL_TOP) ../tarballs/$(SRC_NAME)-$(UPVERSION).tmp/$(SRC_NAME)-$(UPVERSION)
+
+	@cd ../tarballs/$(SRC_NAME)-$(UPVERSION).tmp ; \
+		tar cvf - * | gzip -9 >../$(FILENAME)
+
+	@echo Cleaning up...
+	@$(RM) -rf ../tarballs/$(SRC_NAME)-$(UPVERSION).tmp/

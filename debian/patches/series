@@ -1,0 +1,3 @@
+0001-Add-libmysql-check.patch
+0002-fix-liblfds.6-build.patch
+0003-respect-configure-makeflags.patch
