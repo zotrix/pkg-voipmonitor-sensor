@@ -1,0 +1,25 @@
+From 0eaa70b475ed28907e72438e5c00f628b2e50168 Mon Sep 17 00:00:00 2001
+From: "Max N. Boyarov" <max.n.boyarov@gmail.com>
+Date: Wed, 5 Jun 2013 16:59:37 +0300
+Subject: [PATCH] respect mysql configuration
+
+---
+ sql_db.cpp |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sql_db.cpp b/sql_db.cpp
+index ec8367d..1180e02 100644
+--- a/sql_db.cpp
++++ b/sql_db.cpp
+@@ -335,6 +335,8 @@ SqlDb_mysql::~SqlDb_mysql() {
+ bool SqlDb_mysql::connect() {
+ 	this->hMysql = mysql_init(NULL);
+ 	if(this->hMysql) {
++		// Load mysql configuration defaults
++		mysql_options(this->hMysql,MYSQL_READ_DEFAULT_GROUP,"voipmonitor");
+ 		this->hMysqlConn = mysql_real_connect(
+ 					this->hMysql,
+ 					this->conn_server.c_str(), this->conn_user.c_str(), this->conn_password.c_str(), this->conn_database.c_str(),
+-- 
+1.7.10.4
+
