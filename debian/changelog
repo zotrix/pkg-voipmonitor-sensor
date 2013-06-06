@@ -1,6 +1,7 @@
 voipmonitor (6.5.4-2) UNRELEASED; urgency=low
 
-  * added mysql patch
+  * [patch] Allow use user/system config file
+  * [patch] don't modify schemas by default
 
  -- Max N. Boyarov <max.n.boyarov@gmail.com>  Wed, 05 Jun 2013 17:03:57 +0300
 
