@@ -1,0 +1,68 @@
+From ade9b42b21b2afb7382efcfa605b39bf63ccf951 Mon Sep 17 00:00:00 2001
+From: "Max N. Boyarov" <max.n.boyarov@gmail.com>
+Date: Thu, 6 Jun 2013 09:04:04 +0300
+Subject: [PATCH] add update-schema flag
+
+Don't modify SQL schema by default
+---
+ voipmonitor.cpp |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/voipmonitor.cpp b/voipmonitor.cpp
+index d8ace54..1334239 100644
+--- a/voipmonitor.cpp
++++ b/voipmonitor.cpp
+@@ -68,6 +68,7 @@ int opt_packetbuffered = 0;	// Make .pcap files writing ‘‘packet-buffered’
+ 				// writen file anytime, it will be consistent.
+ 					
+ int opt_fork = 1;		// fork or run foreground 
++int opt_update = 0;             // apply update to database schema
+ int opt_saveSIP = 0;		// save SIP packets to pcap file?
+ int opt_saveRTP = 0;		// save RTP packets to pcap file?
+ int opt_onlyRTPheader = 0;	// do not save RTP payload, only RTP header
+@@ -1093,6 +1094,7 @@ int main(int argc, char *argv[]) {
+ 	    {"ipaccount", 0, 0, 'x'},
+ 	    {"pcapscan-dir", 1, 0, '0'},
+ 	    {"keycheck", 1, 0, 'Z'},
++	    {"update-schema", 0, 0, 'z'},
+ 	    {0, 0, 0, 0}
+ 	};
+ 
+@@ -1150,6 +1152,9 @@ int main(int argc, char *argv[]) {
+ 			case 'Z':
+ 				strncpy(opt_keycheck, optarg, sizeof(opt_keycheck));
+ 				break;
++			case 'z':
++				opt_update = 1;
++				break;
+ 			case '0':
+ 				strncpy(opt_scanpcapdir, optarg, sizeof(opt_scanpcapdir));
+ 				break;
+@@ -1299,9 +1304,12 @@ int main(int argc, char *argv[]) {
+ 	}
+ 	sqlDb->enableSysLog();
+ 	if(!opt_nocdr) {
+-		if(sqlDb->connect()) {
+-			sqlDb->createSchema();
+-		}
++	  if(sqlDb->connect()) {
++		  if (opt_update) {
++			  sqlDb->createSchema();
++			  return (0); //should be createSchema rv
++		  }
++	  }
+ 	}
+ 	if(opt_ipaccount) {
+ 		initIpacc();
+@@ -1618,7 +1626,7 @@ int main(int argc, char *argv[]) {
+ 	}
+ 
+ 	// filters are ok, we can daemonize 
+-	if (opt_fork){
++	if (opt_fork && !opt_update){
+ 		daemonize();
+ 	}
+ 	
+-- 
+1.7.10.4
+
